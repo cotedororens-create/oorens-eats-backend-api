@@ -1,6 +1,6 @@
 {
   "name": "chumel-eats",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Trigger redeploy to verify sync",
   "private": true,
   "scripts": {
