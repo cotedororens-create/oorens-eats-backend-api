@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { CartProvider } from "@/lib/cart";
 import { SITE_CONFIG } from "@/lib/config";
-import { ThemeProvider } from "@/components/theme-provider";
-import { FeexPayClientProvider } from "@/components/FeexPayClientProvider";
-import { NextAuthProvider } from "@/components/NextAuthProvider";
 
 export const metadata: Metadata = {
-  title: `${SITE_CONFIG.name} — Carte & commande en ligne`,
-  description: `${SITE_CONFIG.tagline}. ${SITE_CONFIG.hours}. Commandez via WhatsApp.`,
-  icons: {
-    icon: '/logo.png',
-  },
+  title: `${SITE_CONFIG.name} — Backend API`,
+  description: "Orens-Eats Backend API",
 };
 
 export default function RootLayout({
@@ -20,15 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
-      <body className="font-sans dark:bg-stone-950 dark:text-stone-100 transition-colors duration-300">
-        <NextAuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <FeexPayClientProvider>
-              <CartProvider>{children}</CartProvider>
-            </FeexPayClientProvider>
-          </ThemeProvider>
-        </NextAuthProvider>
+    <html lang="fr">
+      <body>
+        {children}
       </body>
     </html>
   );
