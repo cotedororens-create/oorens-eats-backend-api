@@ -9,19 +9,24 @@ datasource db {
 
 enum Role {
   SUPERADMIN
+  MANAGER
   CASHIER
+  STOREKEEPER
 }
 
 model User {
-  id              String           @id @default(cuid())
-  email           String           @unique
+  id              String              @id @default(cuid())
+  email           String              @unique
   password        String
   name            String
-  role            Role             @default(CASHIER)
-  orders          Order[]          @relation("UserOrders")
+  role            Role                @default(CASHIER)
+  orders          Order[]             @relation("UserOrders")
   cashierProfiles CashierProfile[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  branchId        String?
+  branch          Branch?             @relation("UserBranch", fields: [branchId], references: [id], onDelete: SetNull)
+  movements       InventoryMovement[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 }
 
 model CashierProfile {
@@ -33,6 +38,20 @@ model CashierProfile {
   orders    Order[]  @relation("ProfileOrders")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Branch {
+  id          String      @id @default(cuid())
+  name        String
+  address     String?
+  phone       String?
+  isActive    Boolean     @default(true)
+  users       User[]      @relation("UserBranch")
+  products    Product[]   @relation("ProductBranch")
+  orders      Order[]     @relation("OrderBranch")
+  inventories Inventory[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model Category {
@@ -50,13 +69,16 @@ model Product {
   description    String?
   price          Int
   emoji          String?
-  stock          Int             @default(0)
+  stock          Int             @default(0) // legacy global stock field
   isAvailable    Boolean         @default(true)
   isDailySpecial Boolean         @default(false)
   categoryId     String
   category       Category        @relation(fields: [categoryId], references: [id])
   accompaniments Accompaniment[]
   orderItems     OrderItem[]
+  branchId       String?
+  branch         Branch?         @relation("ProductBranch", fields: [branchId], references: [id], onDelete: SetNull)
+  inventories    Inventory[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 }
@@ -84,6 +106,8 @@ model Order {
   cashier         User?           @relation("UserOrders", fields: [cashierId], references: [id])
   profileId       String?
   profile         CashierProfile? @relation("ProfileOrders", fields: [profileId], references: [id])
+  branchId        String?
+  branch          Branch?         @relation("OrderBranch", fields: [branchId], references: [id], onDelete: SetNull)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 }
@@ -98,6 +122,42 @@ model OrderItem {
   price          Int
   accompLabel    String?
   accompPrice    Int?
+}
+
+model Inventory {
+  id        String              @id @default(cuid())
+  productId String
+  product   Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  branchId  String
+  branch    Branch              @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  quantity  Int                 @default(0)
+  minStock  Int                 @default(5)
+  movements InventoryMovement[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([productId, branchId])
+}
+
+model InventoryMovement {
+  id          String                @id @default(cuid())
+  inventoryId String
+  inventory   Inventory             @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  quantity    Int
+  type        InventoryMovementType
+  reason      String?
+  userId      String?
+  user        User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt   DateTime              @default(now())
+}
+
+enum InventoryMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+  SALE
+  WASTE
+  RETURN
 }
 
 enum OrderStatus {
