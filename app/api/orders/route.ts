@@ -87,7 +87,7 @@ export async function POST(req: Request) {
         deliveryMode,
         location,
         paymentRef,
-        paymentStatus: "SUCCESS", // On assume que cet API est appelé après succès FeexPay
+        paymentStatus: paymentRef?.startsWith("CASH-") ? "SUCCESS" : "PENDING",
         status: "PENDING",
         items: {
           create: items.map((item: any) => ({
